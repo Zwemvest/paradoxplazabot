@@ -1,0 +1,12 @@
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\ParadoxPlazaBot.exe.config
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\ParadoxPlazaBot.exe
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\ParadoxPlazaBot.pdb
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\HtmlAgilityPack.dll
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\Newtonsoft.Json.dll
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\RedditSharp.dll
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\HtmlAgilityPack.pdb
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\HtmlAgilityPack.xml
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\bin\Debug\Newtonsoft.Json.xml
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\obj\Debug\ParadoxPlazaBot.csprojResolveAssemblyReference.cache
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\obj\Debug\ParadoxPlazaBot.exe
+D:\Labs\ParadoxPlazaBot\ParadoxPlazaBot\ParadoxPlazaBot\obj\Debug\ParadoxPlazaBot.pdb
