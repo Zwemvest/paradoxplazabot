@@ -1,0 +1,32 @@
+name: paradox-plaza-rule5-bot
+version: 1.0.0
+description: Automated Rule 5 enforcement for Paradox Gaming subreddits
+
+# Permissions required
+permissions:
+  - modposts
+  - modcomments
+  - modmail
+  - posts
+  - comments
+  - redis
+
+# App configuration
+app:
+  # Main entry point
+  main: dist/main.js
+
+  # Settings UI (generated from code)
+  settings:
+    # Settings are defined programmatically in src/settings/definitions.ts
+
+# Redis configuration
+redis:
+  # Bot uses Redis for state management:
+  # - Post tracking (warned, removed, approved)
+  # - Grace period timers
+  # - Recently approved cache
+
+# Scheduler configuration (for monitoring jobs)
+scheduler:
+  # Jobs defined programmatically in src/main.ts

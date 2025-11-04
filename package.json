@@ -1,0 +1,41 @@
+{
+  "name": "paradox-plaza-rule5-bot",
+  "version": "1.0.0",
+  "description": "Reddit moderation bot for enforcing Rule 5 on Paradox Gaming subreddits",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "devvit:upload": "devvit upload",
+    "devvit:upload:bump": "devvit upload --bump-version"
+  },
+  "keywords": [
+    "reddit",
+    "devvit",
+    "moderation",
+    "bot",
+    "paradox",
+    "rule5"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@devvit/public-api": "^0.11.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.19",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@devvit/public-api": "^0.11.0"
+  }
+}
