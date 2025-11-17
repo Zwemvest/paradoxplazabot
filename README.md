@@ -149,9 +149,7 @@ MIT License - free to use, modify, and distribute. See [LICENSE.md](./Docs/LICEN
 
 ## Credits
 
-**Original concept:** Paradox Plaza Rule 5 bot (Python/PRAW)
-
-**Devvit version:** /u/Zwemvest
+Built by [/u/Zwemvest](https://reddit.com/user/Zwemvest) with pair programming help from Claude (Anthropic's AI). Inspired by the original Paradox Plaza Rule 5 bot written in Python/PRAW.
 
 Built with help from Claude (Anthropic) - turns out AI is pretty good at writing Reddit bots, who knew?
 
