@@ -1,7 +1,7 @@
 {
-  "name": "paradox-plaza-rule5-bot",
-  "version": "1.0.0",
-  "description": "Reddit moderation bot for enforcing Rule 5 on Paradox Gaming subreddits",
+  "name": "rule5bot",
+  "version": "1.0.1",
+  "description": "Generic Reddit moderation bot for enforcing Rule 5 (screenshot explanations)",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
@@ -19,10 +19,10 @@
     "devvit",
     "moderation",
     "bot",
-    "paradox",
-    "rule5"
+    "rule5",
+    "screenshot-explanations"
   ],
-  "author": "",
+  "author": "Zwemvest",
   "license": "MIT",
   "devDependencies": {
     "@devvit/public-api": "^0.11.0",

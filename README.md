@@ -1,477 +1,158 @@
-# Paradox Plaza Rule 5 Bot
+# Rule5Bot
 
-A Reddit moderation bot for enforcing Rule 5 on Paradox Gaming subreddits, built with Devvit.
+A Reddit moderation bot for enforcing Rule 5 (screenshot explanations), built on Devvit.
 
-**Rule 5:** *"Explain what you want people to look at when you post a screenshot. Explanations should be posted as a reddit comment."*
+Originally developed for Paradox grand strategy gaming communities, now a generic solution for any subreddit that needs users to explain their screenshots.
 
----
+## What's Rule 5?
 
-## What This Bot Does
+Most gaming and visual content subreddits have some version of this rule:
 
-When users post screenshots without explanations, this bot:
+> **Rule 5:** Explain what you want people to look at when you post a screenshot.
 
-1. ⏱️ **Waits 5 minutes** (grace period)
-2. ⚠️ **Posts a warning** if no explanation comment added
-3. ⏱️ **Waits 10 more minutes**
-4. 🚫 **Removes the post** if still no explanation
-5. ✅ **Auto-approves** if user adds explanation at any point
-6. 📧 **Handles modmail** for manual reapproval requests
+Without context, a screenshot of a game or complex image can be confusing. Rule 5 ensures posters explain what's happening so everyone can understand and participate in the discussion.
 
----
+## How it works
+
+1. User posts a screenshot
+2. Bot waits 5 minutes (grace period)
+3. No explanation comment? Bot posts a warning
+4. Bot waits another 10 minutes
+5. Still no explanation? Post gets removed
+6. User adds explanation anytime? Post gets auto-approved
+
+The bot only touches its own removals - it won't interfere with human moderator decisions.
 
 ## Features
 
-- ✅ **Highly configurable** - Choose which post types require R5
-- ✅ **Flexible enforcement** - 11 post type options (images, videos, text, links)
-- ✅ **Smart exclusions** - Keywords, flairs, domains, age, upvotes (no regex = safe from ReDoS)
-- ✅ **Flair overrides** - Force or skip enforcement based on flair
-- ✅ **Keyword filtering** - Enforce on or skip posts with specific text
-- ✅ **Automated enforcement** with configurable grace periods
-- ✅ **Quality control** - Report short R5 comments to moderators
-- ✅ **Whitelist support** for trusted users
-- ✅ **Silent approvals** when users comply
-- ✅ **Modmail integration** for appeals
-- ✅ **Multi-platform notifications** (Slack, Discord)
-- ✅ **Customizable templates** for all messages
-- ✅ **Per-subreddit configuration** via web UI
+**Flexible enforcement:**
+- Choose which post types need R5 (images, videos, text posts with media, links)
+- Exclude by keywords, flairs, domains, post age, or upvotes
+- Enforce based on keywords or flairs
 
----
+**Quality control:**
+- Configurable minimum comment length
+- Optional keyword requirements
+- Report short-but-valid comments to mods
 
-## For Moderators
+**Moderation-friendly:**
+- Respects moderator actions
+- Auto-handles modmail appeals
+- Slack/Discord notifications
+- Fully customizable message templates
 
-### Installation
+**Per-subreddit configuration:**
+- Every setting through Devvit's web UI
+- No code changes needed
+- Each subreddit configures independently
 
-1. Go to [Reddit Developer Platform](https://developers.reddit.com/)
-2. Find "Paradox Plaza Rule 5 Bot" in the app directory
-3. Click "Install" on your subreddit
-4. Grant moderator permissions (Manage Posts & Comments, Modmail)
+## Installation
 
-### Configuration
+For moderators:
 
-Configure settings at:
-```
-https://developers.reddit.com/r/{your-subreddit}/apps/rule5bot
-```
+1. Visit [developers.reddit.com](https://developers.reddit.com/)
+2. Find "Rule5Bot" in the app directory
+3. Install on your subreddit
+4. Grant mod permissions (Manage Posts, Modmail)
+5. Configure at `developers.reddit.com/r/yoursubreddit/apps/rule5bot`
 
-#### What Post Types Should Require R5?
+## Configuration
 
-Choose which types of posts require Rule 5 explanations:
+The bot is highly configurable. Key settings:
 
-**Images & Videos:**
-- Image posts (post_hint = 'image')
-- Image galleries (Reddit galleries)
-- Video posts (Reddit videos, hosted videos)
+**Post types to enforce:**
+- Images, galleries, videos
+- Text posts with image/video URLs
+- Links to media hosting sites
+- All of the above or just specific types
 
-**Text Posts:**
-- Text posts containing image URLs
-- Text posts containing video URLs
-- Text posts containing specific keywords
-- Text posts with any URL
+**Exclusions:**
+- Allowed users
+- Specific keywords ("discussion", "question")
+- Flairs ("art", "comic")
+- Old posts or viral posts (upvote threshold)
+- Moderator-approved posts
 
-**Link Posts:**
-- Links to image hosting sites (imgur, gyazo, etc.)
-- Links to video hosting sites (youtube, twitch, etc.)
-- Links from specific domains (configurable)
-- All link posts
-
-**Default:** Images, galleries, text with images, links to images
-
-#### When Should Bot Skip Enforcement?
-
-**By Keywords:**
-- Skip posts containing specific words (e.g., "discussion", "question")
-- Enforce on posts with specific words (e.g., "screenshot", "gameplay")
-
-**By User/Post Properties:**
-- Whitelisted authors
-- Posts older than X hours
-- Posts with more than X upvotes
-- Text posts starting with or containing keywords
-- Links from specific domains
-
-**By Moderation:**
-- Posts approved by moderators
-- Posts removed by moderators
-- Posts with mod comments containing text
-
-**By Flair:**
-- Excluded flairs (never require R5, e.g., "art", "comic")
-- Enforced flairs (always require R5, overrides post type)
-
-#### R5 Comment Requirements
-
-**Location:**
-- Check text post body only
-- Check author comments only
-- Check both (default)
-
-**Length:**
+**R5 requirements:**
 - Minimum length (default: 50 chars)
-- Report if below recommended (default: 75 chars)
+- Where to check (selftext, comment, or both)
+- Optional keyword requirements
 
-**Content:**
-- Optional: Require specific keywords (contains one, contains all, starts with, ends with)
-- Optional: Block lazy phrases ("look at it", "self-explanatory")
-
-#### Timing
-
-- Grace period before first action (default: 5 min)
+**Timing:**
+- Grace period before warning (default: 5 min)
 - Warning period before removal (default: 10 min)
-- Set warning period to 0 for immediate removal
 
-#### Bot Actions
-
-- Remove posts (default) or report to mod queue
-- Comment on warnings (recommended)
-- Comment on removals (recommended)
-- Comment on reinstatements (not recommended, silent better)
-- Monitor modmail for appeals
+**Actions:**
+- Remove posts or just report them
+- Enable/disable warning comments
 - Auto-reinstate from modmail
-- Auto-archive modmail after processing
 
-#### Notifications
+See the [configuration guide](./Docs/features/8000-settings-management.md) for full details.
 
-**Platforms:**
-- Slack webhook
-- Discord webhook
+## Example configurations
 
-**Events:**
-- R5 reported (valid but too short)
-- R5 invalid
-- Warning posted
-- Post removed
-- Post reinstated
-- Bot errors (recommended)
-
-#### Message Templates
-
-Customize all bot messages with variables:
-- Warning message
-- Removal message
-- Report reasons
-- Notification messages
-
-**Available Variables:** `{{username}}`, `{{subreddit}}`, `{{permalink}}`, `{{postid}}`, `{{graceminutes}}`, `{{warningminutes}}`
-
-### Usage
-
-The bot runs automatically. No action required from moderators unless:
-- A user appeals via modmail → bot auto-approves if R5 comment exists
-- Bot encounters errors → check Slack/Discord notifications
-
----
-
-## For Developers
-
-### Tech Stack
-
-- **Platform:** Reddit Devvit
-- **Language:** TypeScript
-- **Storage:** Redis (built-in)
-- **Testing:** Jest
-
-### Project Structure
-
+**Strict (competitive gaming):**
 ```
-paradoxplazabot/
-├── src/                    # Source code
-│   ├── handlers/          # Event handlers (PostSubmit, ModMail)
-│   ├── services/          # Business logic (validation, enforcement)
-│   ├── storage/           # Redis operations
-│   └── utils/             # Helpers (templates, notifications)
-├── Docs/                   # Feature documentation
-│   ├── 0000-feature-domains.md
-│   ├── ARCHITECTURE.md
-│   ├── ROADMAP.md
-│   └── 1000-13000-*.md    # Feature domain docs
-├── test/                   # Test files
-└── devvit.yaml            # Devvit configuration
+Enforce: Images, videos, text with media, all links
+Min length: 75 chars
+Grace: 3 min, Warning: 7 min
+Skip: Nothing (enforce everything)
 ```
 
-### Quick Start
-
-```bash
-# Install Devvit CLI
-npm install -g devvit
-
-# Clone repository
-git clone https://github.com/your-org/paradoxplazabot.git
-cd paradoxplazabot
-
-# Install dependencies
-npm install
-
-# Start development
-devvit upload --bump-version
-
-# Install on test subreddit
-# Go to https://developers.reddit.com/r/your-test-sub/apps
-```
-
-### Documentation
-
-- **[Docs/0000-feature-domains.md](./Docs/0000-feature-domains.md)** - Feature overview
-- **[Docs/ARCHITECTURE.md](./Docs/ARCHITECTURE.md)** - System architecture
-- **[Docs/ROADMAP.md](./Docs/ROADMAP.md)** - Implementation roadmap
-- **[CLAUDE.md](./CLAUDE.md)** - AI assistant context
-
-See [Docs/](./Docs/) for detailed feature specifications (118 features across 13 domains).
-
-### Testing
-
-```bash
-# Run tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run specific test file
-npm test -- validation.test.ts
-```
-
----
-
-## Supported Subreddits
-
-Currently deployed on:
-- r/paradoxplaza
-- r/eu4
-- r/hoi4
-- r/stellaris
-- r/victoria2
-- r/victoria3
-- r/Imperator
-- r/EU5
-
-Each subreddit has independent configuration.
-
----
-
-## How It Works
-
-### Configurable Post Detection
-
-The bot uses a flexible, configurable system to determine which posts require R5:
-
-**1. Choose Post Types to Enforce** (Multi-select)
-- Image posts (direct uploads)
-- Image galleries
-- Video posts
-- Text posts with image URLs
-- Text posts with video URLs
-- Text posts containing keywords
-- Text posts with any URL
-- Links to images
-- Links to videos
-- Links from specific domains
-- All links
-
-**2. Exclusion Priority System**
-
-The bot applies checks in this order (highest to lowest priority):
-
-1. **Skip Keywords** (highest) - If text contains skip keywords → always skip
-2. **Exclusion Rules** - Whitelist, age, upvotes, keywords, domains, mod actions
-3. **Flair Rules** - Excluded flairs → skip | Enforced flairs → enforce
-4. **Post Type Rules** - Check if post type is in enforcement list
-
-**Example:** Even if images require R5, a post with "Art" flair will be skipped (flair exclusion overrides post type).
-
-### Exclusion Options
-
-**By Keywords:**
-- Skip keywords (e.g., "discussion", "question") - highest priority
-- Enforcement keywords (e.g., "screenshot", "gameplay")
-
-**By Content:**
-- Text posts starting with keywords (e.g., "Discussion:", "Question:")
-- Text posts containing keywords (e.g., "discussion", "announcement")
-- Links from excluded domains (e.g., wikipedia.org, reddit.com)
-
-**By User/Post:**
-- Whitelisted authors (comma-separated usernames)
-- Posts older than X hours
-- Posts with more than X upvotes (prevents removing viral posts)
-
-**By Moderation:**
-- Moderator-approved posts (configurable)
-- Moderator-removed posts (avoids interference)
-- Posts with mod comments containing keywords (e.g., "approved", "exception")
-
-**By Flair:**
-- Excluded flairs (e.g., "art", "comic") - never enforce
-- Enforced flairs (e.g., "screenshot", "gameplay") - always enforce, overrides post type
-
-### R5 Comment Validation
-
-**Configurable Requirements:**
-- **Location:** Text post body, comment, or both
-- **Minimum length:** Default 50 characters (configurable 10-1000)
-- **Report threshold:** Default 75 characters (report if between min and threshold)
-- **Required keywords:** Optional keyword matching (contains one, contains all, starts with, ends with)
-  - Example: Require at least one explanatory word: "what", "why", "how", "because"
-
-**Quality Control:**
-- Comments meeting minimum but below recommended → reported to mods
-- Optional: Block lazy phrases ("look at it", "self-explanatory")
-- Optional: Block pure URLs without explanation
-
-### Enforcement Flow
-
-```
-Post Submitted
-  ↓
-Recently approved? → YES → Skip (24h grace)
-  ↓ NO
-Contains skip keywords? → YES → Skip
-  ↓ NO
-Whitelisted user? → YES → Skip
-  ↓ NO
-Too old / too many upvotes? → YES → Skip
-  ↓ NO
-Matches exclusion keywords/domain? → YES → Skip
-  ↓ NO
-Mod approved/removed/commented? → YES → Skip
-  ↓ NO
-Flair excluded? → YES → Skip
-  ↓ NO
-Flair enforced? → YES → Enforce
-  ↓ NO (null)
-Post type enforced? → YES → Enforce
-  ↓ NO
-Skip (not enforced)
-
-IF ENFORCED:
-  ↓
-Wait grace period (default: 5 min)
-  ↓
-Has valid R5? → YES → Done (no action needed)
-  ↓ NO
-Post warning (if enabled)
-  ↓
-Wait warning period (default: 10 min)
-  ↓
-Has valid R5? → YES → Approve, clean up warnings
-  ↓ NO
-Remove post (or report if configured)
-  ↓
-Notify mods
-```
-
-### Reinstatement
-
-- **Automatic:** Monitoring job (every 1 min) detects R5 comments added after warning
-- **Manual:** Users send modmail → bot verifies R5 → auto-approves
-
----
-
-## Configuration Examples
-
-### Default Configuration (Balanced)
-```
-Enforce: Images, galleries, text with images, links to images
-Skip: Posts with "art" or "comic" flair
-Minimum R5: 50 characters
-Report if: 50-74 characters (valid but short)
-Grace: 5 minutes
-Warning: 10 minutes
-Action: Remove with comment
-Notifications: Removals and errors
-```
-
-### Strict Configuration
-```
-Enforce: Images, galleries, videos, all text with media, all links
-Excluded flairs: None (enforce even on art)
-Minimum R5: 75 characters
-Report if: 75-100 characters
-Required text: Must contain "what", "why", or "how"
-Grace: 3 minutes
-Warning: 7 minutes
-Skip upvotes: 0 (enforce on all posts)
-Notifications: All events (warnings, removals, reports)
-```
-
-### Lenient Configuration
-```
-Enforce: Images only (not galleries or videos)
-Excluded flairs: art, comic, discussion, question, meta
-Skip keywords: discussion, question, announcement
-Minimum R5: 30 characters
-Report threshold: Disabled (no reporting)
-Grace: 10 minutes
-Warning: 15 minutes
-Skip if: >100 upvotes or >12 hours old
-Notifications: Errors only
-```
-
-### Image-Only Subreddit
+**Balanced (default):**
 ```
 Enforce: Images, galleries, text with images
-Skip: Videos, all text-only, all link posts
-Excluded flairs: art, comic
-Minimum R5: 50 characters
-Location: Comment only (not selftext)
-Grace: 5 minutes
-Warning: 10 minutes
+Min length: 50 chars
+Grace: 5 min, Warning: 10 min
+Skip: "art" and "comic" flairs
 ```
 
-### Keyword-Based Enforcement
+**Lenient (casual community):**
 ```
-Enforce: Text containing "screenshot", "gameplay", "battle"
-Skip: Text containing "discussion", "question", "help"
-Post types: Text posts only (not images/videos)
-Minimum R5: 40 characters
-Grace: 7 minutes
-Warning: 0 (immediate removal after grace)
+Enforce: Images only
+Min length: 30 chars
+Grace: 10 min, Warning: 15 min
+Skip: >100 upvotes, >12h old, discussion/question posts
 ```
 
----
+## Development
 
-## Support
+Built with:
+- Reddit Devvit
+- TypeScript
+- Jest for testing
+- Redis for storage
 
-**Issues:** [GitHub Issues](https://github.com/your-org/paradoxplazabot/issues)
+```bash
+# Setup
+npm install -g devvit
+git clone https://github.com/Zwemvest/rule5bot.git
+cd rule5bot
+npm install
 
-**Modmail:** Contact bot operator via your subreddit's modmail
+# Development
+devvit upload --bump-version
 
-**Documentation:** See [Docs/](./Docs/) directory
+# Testing
+npm test
+```
 
----
+See [Docs/](./Docs/) for architecture details and the complete feature list (142 features across 13 domains).
 
 ## Contributing
 
-Contributions welcome! Please:
-1. Read [Docs/ROADMAP.md](./Docs/ROADMAP.md) for feature priorities
-2. Check existing issues
-3. Follow TypeScript + Jest testing conventions
-4. Submit PR with tests
-
----
+Contributions welcome! Check [ROADMAP.md](./Docs/ROADMAP.md) for priorities. Make sure to include tests with your PRs.
 
 ## License
 
-[Specify license - MIT, GPL, etc.]
-
----
+MIT License - free to use, modify, and distribute. See [LICENSE.md](./Docs/LICENSE.md) for details.
 
 ## Credits
 
-**Original Python Bot:** Based on the original Paradox Plaza Rule 5 bot
-**Devvit Port:** [Your name/team]
-**Maintained By:** [Maintainer info]
-**Contributors:** [Link to contributors]
+**Original concept:** Paradox Plaza Rule 5 bot (Python/PRAW)
 
----
+**Devvit version:** /u/Zwemvest
 
-## Changelog
+Built with help from Claude (Anthropic) - turns out AI is pretty good at writing Reddit bots, who knew?
 
-### v1.0.0 (Planned)
-- Initial Devvit implementation
-- Core enforcement features (detection, warning, removal, reinstatement)
-- Settings management
-- Modmail integration
-- Slack/Discord notifications
-- Comprehensive testing
-
-See [Docs/ROADMAP.md](./Docs/ROADMAP.md) for detailed development timeline.
+See [CONTRIBUTORS.md](./Docs/CONTRIBUTORS.md) for everyone who helped.

@@ -1,6 +1,6 @@
-name: paradox-plaza-rule5-bot
-version: 1.0.0
-description: Automated Rule 5 enforcement for Paradox Gaming subreddits
+name: rule5bot
+version: 1.0.1
+description: Generic Rule 5 enforcement bot - ensures users explain their screenshots
 
 # Permissions required
 permissions:

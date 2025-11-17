@@ -5,7 +5,8 @@
  * Responds immediately when new posts are submitted
  */
 
-import type { PostSubmit, TriggerContext } from '@devvit/public-api';
+import type { TriggerContext } from '@devvit/public-api';
+import type { PostSubmit } from '@devvit/protos';
 import { isPostProcessed, markPostProcessed } from '../storage/postState.js';
 
 /**

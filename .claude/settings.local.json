@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(del DocsREADME.md)",
+      "Bash(move Docsfeature-domains.md Docs0000-feature-domains.md)",
+      "Bash(npm test:*)",
+      "Bash(devvit --version:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(devvit --help:*)",
+      "Bash(devvit help:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(devvit list:*)",
+      "Bash(devvit upload:*)",
+      "Bash(devvit install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
