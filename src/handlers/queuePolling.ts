@@ -8,6 +8,7 @@
 
 import type { ScheduledJobEvent, TriggerContext } from '@devvit/public-api';
 import { isPostProcessed, markPostProcessed } from '../storage/postState.js';
+import { log } from '../utils/logger.js';
 
 /**
  * Poll new queue for posts
@@ -23,19 +24,19 @@ export async function onQueuePolling(
     // Check if polling is enabled
     const enablePolling = settings.enablepolling as boolean;
     if (!enablePolling) {
-      console.log('[QueuePolling] Polling disabled, skipping');
+      log({ level: 'info', message: 'Polling disabled, skipping', service: 'QueuePolling' });
       return;
     }
 
     const queueLimit = (settings.queuelimit as number) || 100;
 
-    console.log(`[QueuePolling] Starting queue poll (limit: ${queueLimit})`);
+    log({ level: 'info', message: `Starting queue poll (limit: ${queueLimit})`, service: 'QueuePolling' });
 
     // Get current subreddit
     const subreddit = await context.reddit.getCurrentSubreddit();
     const subredditName = subreddit.name;
 
-    console.log(`[QueuePolling] Polling r/${subredditName}`);
+    log({ level: 'info', message: `Polling r/${subredditName}`, service: 'QueuePolling' });
 
     // Fetch new posts
     const posts = await context.reddit.getNewPosts({
@@ -43,7 +44,7 @@ export async function onQueuePolling(
       limit: queueLimit,
     }).all();
 
-    console.log(`[QueuePolling] Found ${posts.length} posts in new queue`);
+    log({ level: 'info', message: `Found ${posts.length} posts in new queue`, service: 'QueuePolling' });
 
     let processedCount = 0;
     let skippedCount = 0;
@@ -64,9 +65,11 @@ export async function onQueuePolling(
         const validationResult = await shouldEnforceRule5(post, context);
 
         if (validationResult.shouldEnforce) {
-          console.log(
-            `[QueuePolling] Post ${post.id} requires enforcement: ${validationResult.reason}`
-          );
+          log({
+            level: 'info',
+            message: `Post ${post.id} requires enforcement: ${validationResult.reason}`,
+            service: 'QueuePolling',
+          });
           // Feature 4001: Schedule grace period check
           const { scheduleGracePeriodCheck } = await import('../services/warningSystem.js');
           await scheduleGracePeriodCheck(post.id, context);
@@ -74,16 +77,28 @@ export async function onQueuePolling(
 
         processedCount++;
       } catch (error) {
-        console.error(`[QueuePolling] Error processing post ${post.id}:`, error);
+        log({
+          level: 'error',
+          message: `Error processing post ${post.id}`,
+          service: 'QueuePolling',
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
         // Continue with next post
       }
     }
 
-    console.log(
-      `[QueuePolling] Completed: ${processedCount} processed, ${skippedCount} skipped`
-    );
+    log({
+      level: 'info',
+      message: `Completed: ${processedCount} processed, ${skippedCount} skipped`,
+      service: 'QueuePolling',
+    });
   } catch (error) {
-    console.error('[QueuePolling] Error during queue poll:', error);
+    log({
+      level: 'error',
+      message: 'Error during queue poll',
+      service: 'QueuePolling',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     // Don't throw - let next scheduled run try again
   }
 }

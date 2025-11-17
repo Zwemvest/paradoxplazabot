@@ -10,6 +10,7 @@ import type { BotSettings } from '../types';
 import { isPostWarned, markPostRemoved, getWarningCommentId } from '../storage/postState.js';
 import { substituteVariables, getR5ReinstatementModmailLink } from '../utils/templates.js';
 import { sendNotification } from './notificationService.js';
+import { log } from '../utils/logger.js';
 
 /**
  * Feature 5002: Schedule Removal Check
@@ -18,18 +19,18 @@ import { sendNotification } from './notificationService.js';
  */
 export async function checkRemoval(postId: string, context: TriggerContext): Promise<void> {
   try {
-    console.log(`[RemovalSystem] Checking removal for post ${postId}`);
+    log({ level: 'info', message: `Checking removal for post ${postId}`, service: 'RemovalSystem' });
 
     // Get post
     const post = await context.reddit.getPostById(postId);
     if (!post) {
-      console.warn(`[RemovalSystem] Post ${postId} not found, skipping`);
+      log({ level: 'warn', message: `Post ${postId} not found, skipping`, service: 'RemovalSystem' });
       return;
     }
 
     // Feature 5003: Verify Warning Exists Before Removal
     if (!(await isPostWarned(postId, context))) {
-      console.warn(`[RemovalSystem] Post ${postId} was never warned, skipping removal`);
+      log({ level: 'warn', message: `Post ${postId} was never warned, skipping removal`, service: 'RemovalSystem' });
       return;
     }
 
@@ -38,27 +39,36 @@ export async function checkRemoval(postId: string, context: TriggerContext): Pro
     const validationResult = await shouldEnforceRule5(post, context);
 
     if (!validationResult.shouldEnforce) {
-      console.log(
-        `[RemovalSystem] Post ${postId} no longer needs enforcement: ${validationResult.reason}`
-      );
+      log({
+        level: 'info',
+        message: `Post ${postId} no longer needs enforcement: ${validationResult.reason}`,
+        service: 'RemovalSystem',
+      });
       return;
     }
 
     // Check if R5 was added since warning
     const hasR5 = await checkR5Added(post, context);
     if (hasR5) {
-      console.log(
-        `[RemovalSystem] Post ${postId} has R5 comment, skipping removal (will be handled by reinstatement)`
-      );
+      log({
+        level: 'info',
+        message: `Post ${postId} has R5 comment, skipping removal (will be handled by reinstatement)`,
+        service: 'RemovalSystem',
+      });
       return;
     }
 
     // Post still needs removal
     await removePost(post, context);
 
-    console.log(`[RemovalSystem] Successfully removed post ${postId}`);
+    log({ level: 'info', message: `Successfully removed post ${postId}`, service: 'RemovalSystem' });
   } catch (error) {
-    console.error(`[RemovalSystem] Error during removal check for ${postId}:`, error);
+    log({
+      level: 'error',
+      message: `Error during removal check for ${postId}`,
+      service: 'RemovalSystem',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     // Fail open - don't throw
   }
 }
@@ -79,14 +89,19 @@ export async function removePost(post: Post, context: TriggerContext): Promise<v
     // Feature 5005 & 5010: Remove or Report Post
     if (enforcementAction === 'remove' || enforcementAction === 'both') {
       try {
-        console.log(`[RemovalSystem] Removing post ${postId}`);
+        log({ level: 'info', message: `Removing post ${postId}`, service: 'RemovalSystem' });
         await post.remove();
         wasRemoved = true;
-        console.log(`[RemovalSystem] Post ${postId} removed`);
+        log({ level: 'info', message: `Post ${postId} removed`, service: 'RemovalSystem' });
       } catch (error) {
-        console.error(`[RemovalSystem] Failed to remove post ${postId}:`, error);
+        log({
+          level: 'error',
+          message: `Failed to remove post ${postId}`,
+          service: 'RemovalSystem',
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
         // Feature 5010: Fallback to reporting if removal fails
-        console.log(`[RemovalSystem] Falling back to report for post ${postId}`);
+        log({ level: 'info', message: `Falling back to report for post ${postId}`, service: 'RemovalSystem' });
       }
     }
 
@@ -94,12 +109,17 @@ export async function removePost(post: Post, context: TriggerContext): Promise<v
     if (!wasRemoved || enforcementAction === 'report' || enforcementAction === 'both') {
       try {
         const reportReason = settings.reportreason || 'Missing Rule 5 explanation after warning period';
-        console.log(`[RemovalSystem] Reporting post ${postId}`);
+        log({ level: 'info', message: `Reporting post ${postId}`, service: 'RemovalSystem' });
         await context.reddit.report(post, { reason: reportReason });
         wasReported = true;
-        console.log(`[RemovalSystem] Post ${postId} reported to moderators`);
+        log({ level: 'info', message: `Post ${postId} reported to moderators`, service: 'RemovalSystem' });
       } catch (error) {
-        console.error(`[RemovalSystem] Failed to report post ${postId}:`, error);
+        log({
+          level: 'error',
+          message: `Failed to report post ${postId}`,
+          service: 'RemovalSystem',
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
       }
     }
 
@@ -111,7 +131,7 @@ export async function removePost(post: Post, context: TriggerContext): Promise<v
     if (settings.commentonremoval) {
       await postRemovalComment(post, settings, context, wasRemoved, wasReported);
     } else {
-      console.log(`[RemovalSystem] Removal comments disabled, skipping comment for ${postId}`);
+      log({ level: 'info', message: `Removal comments disabled, skipping comment for ${postId}`, service: 'RemovalSystem' });
     }
 
     // Feature 5008: Clean Up Warning Comments (if enabled)
@@ -133,7 +153,12 @@ export async function removePost(post: Post, context: TriggerContext): Promise<v
       context
     );
   } catch (error) {
-    console.error(`[RemovalSystem] Error removing post ${post.id}:`, error);
+    log({
+      level: 'error',
+      message: `Error removing post ${post.id}`,
+      service: 'RemovalSystem',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     // Fail open
   }
 }
@@ -174,7 +199,7 @@ async function postRemovalComment(
       action: wasRemoved ? 'removed' : 'reported to moderators',
     });
 
-    console.log(`[RemovalSystem] Posting ${wasRemoved ? 'removal' : 'report'} comment on post ${postId}`);
+    log({ level: 'info', message: `Posting ${wasRemoved ? 'removal' : 'report'} comment on post ${postId}`, service: 'RemovalSystem' });
 
     // Feature 5006: Post Removal Comment
     const comment = await post.addComment({
@@ -184,15 +209,20 @@ async function postRemovalComment(
     if (comment) {
       // Feature 5007: Distinguish Removal Comment as Moderator
       await comment.distinguish(true);
-      console.log(`[RemovalSystem] Posted and distinguished ${wasRemoved ? 'removal' : 'report'} comment ${comment.id}`);
+      log({ level: 'info', message: `Posted and distinguished ${wasRemoved ? 'removal' : 'report'} comment ${comment.id}`, service: 'RemovalSystem' });
 
       // Update removal state with comment ID
       await markPostRemoved(postId, context, comment.id);
     } else {
-      console.error(`[RemovalSystem] Failed to post removal comment on ${postId}`);
+      log({ level: 'error', message: `Failed to post removal comment on ${postId}`, service: 'RemovalSystem' });
     }
   } catch (error) {
-    console.error(`[RemovalSystem] Error posting removal comment for ${post.id}:`, error);
+    log({
+      level: 'error',
+      message: `Error posting removal comment for ${post.id}`,
+      service: 'RemovalSystem',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     // Don't throw - removal already happened
   }
 }
@@ -205,19 +235,24 @@ async function cleanupWarningComments(postId: string, context: TriggerContext): 
   try {
     const warningCommentId = await getWarningCommentId(postId, context);
     if (!warningCommentId) {
-      console.log(`[RemovalSystem] No warning comment to clean up for ${postId}`);
+      log({ level: 'info', message: `No warning comment to clean up for ${postId}`, service: 'RemovalSystem' });
       return;
     }
 
-    console.log(`[RemovalSystem] Cleaning up warning comment ${warningCommentId}`);
+    log({ level: 'info', message: `Cleaning up warning comment ${warningCommentId}`, service: 'RemovalSystem' });
 
     const comment = await context.reddit.getCommentById(warningCommentId);
     if (comment) {
       await comment.delete();
-      console.log(`[RemovalSystem] Deleted warning comment ${warningCommentId}`);
+      log({ level: 'info', message: `Deleted warning comment ${warningCommentId}`, service: 'RemovalSystem' });
     }
   } catch (error) {
-    console.error(`[RemovalSystem] Error cleaning up warning comments for ${postId}:`, error);
+    log({
+      level: 'error',
+      message: `Error cleaning up warning comments for ${postId}`,
+      service: 'RemovalSystem',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     // Don't throw - removal already happened
   }
 }
@@ -232,7 +267,12 @@ async function checkR5Added(post: Post, context: TriggerContext): Promise<boolea
     const result = await hasValidR5Comment(post, context);
     return result.hasValidR5;
   } catch (error) {
-    console.error(`[RemovalSystem] Error checking R5:`, error);
+    log({
+      level: 'error',
+      message: `Error checking R5`,
+      service: 'RemovalSystem',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     return false; // Fail open - assume no R5
   }
 }

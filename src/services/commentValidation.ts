@@ -8,6 +8,7 @@
 import type { Post, Comment, TriggerContext } from '@devvit/public-api';
 import type { BotSettings } from '../types';
 import { meetsMinimumLength, containsOne, containsAll, startsWith, endsWith, parseKeywordList } from '../utils/keywordMatching.js';
+import { log } from '../utils/logger.js';
 
 /**
  * Result of R5 comment validation
@@ -70,7 +71,12 @@ export async function hasValidR5Comment(
       reason: lastFailureReason,
     };
   } catch (error) {
-    console.error('[CommentValidation] Error checking R5 comment:', error);
+    log({
+      level: 'error',
+      message: 'Error checking R5 comment',
+      service: 'CommentValidation',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     return {
       hasValidR5: false,
       reason: 'Error checking comments (fail open)',
@@ -109,7 +115,12 @@ export async function hasR5AddedAfterWarning(
       reason: 'R5 comment exists but was created before warning',
     };
   } catch (error) {
-    console.error('[CommentValidation] Error checking post-warning R5:', error);
+    log({
+      level: 'error',
+      message: 'Error checking post-warning R5',
+      service: 'CommentValidation',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     return {
       hasValidR5: false,
       reason: 'Error checking post-warning R5 (fail open)',
@@ -138,7 +149,12 @@ async function fetchPostComments(post: Post, _context: TriggerContext): Promise<
     // The actual filtering happens in findAuthorComments
     return allComments;
   } catch (error) {
-    console.error('[CommentValidation] Error fetching comments:', error);
+    log({
+      level: 'error',
+      message: 'Error fetching comments',
+      service: 'CommentValidation',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     return [];
   }
 }
@@ -187,7 +203,12 @@ async function findAuthorComments(
 
     return authorComments;
   } catch (error) {
-    console.error('[CommentValidation] Error filtering author comments:', error);
+    log({
+      level: 'error',
+      message: 'Error filtering author comments',
+      service: 'CommentValidation',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     return [];
   }
 }
@@ -295,7 +316,12 @@ export async function hasAuthorComment(
     const authorComments = await findAuthorComments(post, comments, context);
     return authorComments.length > 0;
   } catch (error) {
-    console.error('[CommentValidation] Error checking author comment:', error);
+    log({
+      level: 'error',
+      message: 'Error checking author comment',
+      service: 'CommentValidation',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     return false;
   }
 }
@@ -317,7 +343,7 @@ export async function reportR5Comment(
       reason: reportReason,
     });
 
-    console.log(`[CommentValidation] Reported R5 comment ${comment.id}: ${reason}`);
+    log({ level: 'info', message: `Reported R5 comment ${comment.id}: ${reason}`, service: 'CommentValidation' });
 
     // Send notification if enabled
     const { sendNotification } = await import('./notificationService.js');
@@ -336,7 +362,12 @@ export async function reportR5Comment(
       );
     }
   } catch (error) {
-    console.error('[CommentValidation] Error reporting R5 comment:', error);
+    log({
+      level: 'error',
+      message: 'Error reporting R5 comment',
+      service: 'CommentValidation',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     // Fail open
   }
 }

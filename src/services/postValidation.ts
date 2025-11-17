@@ -19,6 +19,7 @@ import { wasRecentlyApproved, wasRemovedByBot } from '../storage/postState.js';
 import { parseKeywordList, containsOne } from '../utils/keywordMatching.js';
 import { matchesAnyPattern, matchesDomain, containsURL, parseDomainList } from '../utils/domainMatching.js';
 import { isSelfPost, getSelfText, isGallery, getFlairText, isVideo, getPostTypeHint } from '../utils/postHelpers.js';
+import { log } from '../utils/logger.js';
 
 // ============================================================================
 // Feature 2014: Complete Validation Pipeline
@@ -81,7 +82,12 @@ export async function shouldEnforceRule5(
     return postTypeResult;
 
   } catch (error) {
-    console.error('[PostValidation] Error during validation:', error);
+    log({
+      level: 'error',
+      message: 'Error during validation',
+      service: 'PostValidation',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     // Fail open: Don't enforce on errors
     return { shouldEnforce: false, reason: 'Validation error (fail open)' };
   }

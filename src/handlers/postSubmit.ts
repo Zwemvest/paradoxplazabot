@@ -8,6 +8,7 @@
 import type { TriggerContext } from '@devvit/public-api';
 import type { PostSubmit } from '@devvit/protos';
 import { isPostProcessed, markPostProcessed } from '../storage/postState.js';
+import { log } from '../utils/logger.js';
 
 /**
  * Handle new post submission
@@ -18,17 +19,17 @@ export async function onPostSubmit(event: PostSubmit, context: TriggerContext): 
     const postId = event.post?.id;
 
     if (!postId) {
-      console.error('[PostSubmit] No post ID in event');
+      log({ level: 'error', message: 'No post ID in event', service: 'PostSubmit' });
       return;
     }
 
     // Feature 1003: Deduplication check
     if (await isPostProcessed(postId, context)) {
-      console.warn(`[PostSubmit] Post ${postId} already processed, skipping`);
+      log({ level: 'warn', message: `Post ${postId} already processed, skipping`, service: 'PostSubmit' });
       return;
     }
 
-    console.log(`[PostSubmit] Processing new post: ${postId}`);
+    log({ level: 'info', message: `Processing new post: ${postId}`, service: 'PostSubmit' });
 
     // Mark as processed immediately to prevent race conditions
     await markPostProcessed(postId, context);
@@ -37,7 +38,7 @@ export async function onPostSubmit(event: PostSubmit, context: TriggerContext): 
     const post = await context.reddit.getPostById(postId);
 
     if (!post) {
-      console.error(`[PostSubmit] Could not fetch post ${postId}`);
+      log({ level: 'error', message: `Could not fetch post ${postId}`, service: 'PostSubmit' });
       return;
     }
 
@@ -46,22 +47,31 @@ export async function onPostSubmit(event: PostSubmit, context: TriggerContext): 
     const validationResult = await shouldEnforceRule5(post, context);
 
     if (validationResult.shouldEnforce) {
-      console.log(
-        `[PostSubmit] Post ${postId} requires R5 enforcement: ${validationResult.reason}`
-      );
+      log({
+        level: 'info',
+        message: `Post ${postId} requires R5 enforcement: ${validationResult.reason}`,
+        service: 'PostSubmit',
+      });
 
       // Feature 4001: Schedule grace period check
       const { scheduleGracePeriodCheck } = await import('../services/warningSystem.js');
       await scheduleGracePeriodCheck(postId, context);
     } else {
-      console.log(
-        `[PostSubmit] Post ${postId} does not require enforcement: ${validationResult.reason}`
-      );
+      log({
+        level: 'info',
+        message: `Post ${postId} does not require enforcement: ${validationResult.reason}`,
+        service: 'PostSubmit',
+      });
     }
 
-    console.log(`[PostSubmit] Successfully processed post ${postId}`);
+    log({ level: 'info', message: `Successfully processed post ${postId}`, service: 'PostSubmit' });
   } catch (error) {
-    console.error('[PostSubmit] Error processing post:', error);
+    log({
+      level: 'error',
+      message: 'Error processing post',
+      service: 'PostSubmit',
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     // Fail open: Don't block user posts due to bot errors
   }
 }
