@@ -51,6 +51,7 @@ export async function hasValidR5Comment(
     }
 
     // Check each author comment for valid R5
+    let lastFailureReason = 'No valid R5 comment found';
     for (const comment of authorComments) {
       const validation = await validateR5Comment(comment, settings);
       if (validation.hasValidR5) {
@@ -60,11 +61,13 @@ export async function hasValidR5Comment(
           comment,
         };
       }
+      // Keep track of the most specific failure reason
+      lastFailureReason = validation.reason;
     }
 
     return {
       hasValidR5: false,
-      reason: 'No valid R5 comment found',
+      reason: lastFailureReason,
     };
   } catch (error) {
     console.error('[CommentValidation] Error checking R5 comment:', error);
@@ -118,11 +121,13 @@ export async function hasR5AddedAfterWarning(
  * Feature 3007: Fetch Post Comments
  * Get all comments for a post
  */
-async function fetchPostComments(post: Post, context: TriggerContext): Promise<Comment[]> {
+async function fetchPostComments(post: Post, _context: TriggerContext): Promise<Comment[]> {
   try {
     // Get comments based on r5commentlocation setting
-    const settings = (await context.settings.getAll()) as unknown as BotSettings;
-    const location = settings.r5commentlocation || 'both';
+// TODO: Use r5commentlocation setting
+    //     const _settings = (await context.settings.getAll()) as unknown as BotSettings;
+// TODO: Use this setting
+    //     const _location = settings.r5commentlocation || 'both';
 
     const allComments = await post.comments.all();
 

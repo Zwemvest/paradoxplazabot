@@ -10,7 +10,9 @@ import type { BotSettings } from '../../src/types';
 
 // Mock the dependencies
 jest.mock('../../src/storage/postState');
+jest.mock('../../src/utils/logger');
 jest.mock('../../src/services/postValidation');
+jest.mock('../../src/utils/logger');
 
 const mockIsPostWarned = isPostWarned as jest.MockedFunction<typeof isPostWarned>;
 const mockMarkPostWarned = markPostWarned as jest.MockedFunction<typeof markPostWarned>;
@@ -92,7 +94,7 @@ const createMockContext = (settingsOverride: Partial<BotSettings> = {}) => {
 const createMockPost = (overrides: Partial<Post> = {}): Post => {
   const mockComment = {
     id: 'comment123',
-    distinguish: jest.fn(async (asModera tor: boolean) => {}),
+    distinguish: jest.fn(async (asModerator: boolean) => {}),
   };
 
   return {

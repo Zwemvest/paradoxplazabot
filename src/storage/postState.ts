@@ -11,7 +11,7 @@ import type { PostState } from '../types/index.js';
 // ============================================================================
 
 const TTL_7_DAYS = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
-const TTL_24_HOURS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+// const _TTL_24_HOURS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 // ============================================================================
 // Deduplication (Feature 1003)

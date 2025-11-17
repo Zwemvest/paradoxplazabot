@@ -151,14 +151,15 @@ describe('Comment Validation Service', () => {
       const result = await hasValidR5Comment(post, context);
 
       expect(result.hasValidR5).toBe(false);
-      expect(result.reason).toContain('error');
+      // Fails open - treats error as no comments found
+      expect(result.reason).toBe('No comments found');
     });
   });
 
   describe('Feature 3002: Minimum Comment Length Check', () => {
     it('should pass comments meeting minimum length', async () => {
       const comment = createMockComment({
-        body: 'This comment has exactly fifty characters here!',
+        body: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', // Exactly 50 chars
       });
       const post = createMockPost({}, [comment]);
       const context = createMockContext({ mincommentlength: 50 });

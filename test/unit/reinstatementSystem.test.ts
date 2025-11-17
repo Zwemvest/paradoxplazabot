@@ -19,7 +19,9 @@ import type { BotSettings } from '../../src/types';
 
 // Mock the dependencies
 jest.mock('../../src/storage/postState');
+jest.mock('../../src/utils/logger');
 jest.mock('../../src/services/commentValidation');
+jest.mock('../../src/utils/logger');
 
 const mockIsPostWarned = isPostWarned as jest.MockedFunction<typeof isPostWarned>;
 const mockWasRemovedByBot = wasRemovedByBot as jest.MockedFunction<typeof wasRemovedByBot>;

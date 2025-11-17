@@ -12,6 +12,20 @@ import { wasRemovedByBot } from '../storage/postState.js';
 import { hasValidR5Comment } from '../services/commentValidation.js';
 import { reinstatePost } from '../services/reinstatementSystem.js';
 import { substituteVariables } from '../utils/templates.js';
+import { log } from '../utils/logger.js';
+
+// Type for modmail conversation response
+interface ModMailConversation {
+  conversation?: {
+    subject?: string;
+  };
+  messages?: Array<{
+    bodyMarkdown?: string;
+    author?: {
+      name?: string;
+    };
+  }>;
+}
 
 /**
  * Feature 7001: Monitor Modmail for R5 Subjects
@@ -24,25 +38,25 @@ export async function onModMail(event: ModMail, context: TriggerContext): Promis
     const messageId = event.messageId;
 
     if (!conversationId || !messageId) {
-      console.error('[ModMail] Missing conversationId or messageId in event');
+      log({ level: 'error', message: 'Missing conversationId or messageId in modmail event' });
       return;
     }
 
-    console.log(`[ModMail] Processing modmail conversation: ${conversationId}`);
+    log({ level: 'info', message: `Processing modmail conversation: ${conversationId}` });
 
     const settings = (await context.settings.getAll()) as unknown as BotSettings;
 
     // Check if modmail is enabled
     if (!settings.enablemodmail) {
-      console.log('[ModMail] Modmail processing disabled');
+      log({ level: 'info', message: 'Modmail processing disabled' });
       return;
     }
 
     // Get conversation details to check subject
-    const conversation = await context.reddit.modMail.getConversation({ conversationId });
+    const conversation = (await context.reddit.modMail.getConversation({ conversationId })) as ModMailConversation;
 
     if (!conversation || !conversation.conversation) {
-      console.error('[ModMail] Could not fetch conversation');
+      log({ level: 'error', message: 'Could not fetch modmail conversation' });
       return;
     }
 
@@ -55,17 +69,17 @@ export async function onModMail(event: ModMail, context: TriggerContext): Promis
     );
 
     if (!containsKeyword) {
-      console.log(`[ModMail] Subject "${conversation.conversation.subject}" doesn't contain R5 keywords, skipping`);
+      log({ level: 'info', message: `Modmail subject doesn't contain R5 keywords: "${conversation.conversation.subject}"` });
       return;
     }
 
-    console.log(`[ModMail] R5 reinstatement request detected`);
+    log({ level: 'info', message: 'R5 reinstatement request detected in modmail' });
 
     // Feature 7010: Complete Modmail Processing Flow
     await processModMailReinstatement(conversationId, conversation, context);
 
   } catch (error) {
-    console.error('[ModMail] Error processing modmail:', error);
+    log({ level: 'error', message: 'Error processing modmail', error: error instanceof Error ? error : undefined });
     // Fail open - don't throw
   }
 }
@@ -76,7 +90,7 @@ export async function onModMail(event: ModMail, context: TriggerContext): Promis
  */
 async function processModMailReinstatement(
   conversationId: string,
-  conversation: any,
+  conversation: ModMailConversation,
   context: TriggerContext
 ): Promise<void> {
   try {
@@ -101,7 +115,7 @@ async function processModMailReinstatement(
       return;
     }
 
-    console.log(`[ModMail] Extracted post ID: ${postId}`);
+    log({ level: 'info', message: `Extracted post ID from modmail: ${postId}` });
 
     // Get the post
     const post = await context.reddit.getPostById(postId);
@@ -165,7 +179,7 @@ async function processModMailReinstatement(
     }
 
     // Feature 7006: Approve Post via Modmail Request
-    console.log(`[ModMail] Reinstating post ${postId} via modmail request`);
+    log({ level: 'info', message: `Reinstating post via modmail: ${postId}` });
     await reinstatePost(post, context);
 
     // Feature 7007: Reply to Modmail
@@ -174,17 +188,17 @@ async function processModMailReinstatement(
     });
     await replyToModMail(conversationId, context, successMessage, true);
 
-    console.log(`[ModMail] Successfully processed reinstatement for ${postId}`);
+    log({ level: 'info', message: `Successfully processed reinstatement: ${postId}` });
 
   } catch (error) {
-    console.error('[ModMail] Error during reinstatement processing:', error);
+    log({ level: 'error', message: 'Error during reinstatement processing', error: error instanceof Error ? error : undefined });
 
     // Try to send error message
     try {
       const settings = (await context.settings.getAll()) as unknown as BotSettings;
       await replyToModMail(conversationId, context, settings.modmailerror, false);
     } catch (replyError) {
-      console.error('[ModMail] Could not send error reply:', replyError);
+      log({ level: 'error', message: 'Could not send error reply to modmail', error: replyError instanceof Error ? replyError : undefined });
     }
   }
 }
@@ -237,21 +251,21 @@ async function replyToModMail(
       isInternal: false,
     });
 
-    console.log(`[ModMail] Sent reply to modmail ${conversationId}`);
+    log({ level: 'info', message: `Sent reply to modmail: ${conversationId}` });
 
     // Feature 7008: Archive Modmail Conversation (if enabled and successful)
     const settings = (await context.settings.getAll()) as unknown as BotSettings;
     if (shouldArchive && settings.autoarchivemodmail) {
       try {
         await context.reddit.modMail.archiveConversation(conversationId);
-        console.log(`[ModMail] Archived modmail ${conversationId}`);
+        log({ level: 'info', message: `Archived modmail: ${conversationId}` });
       } catch (archiveError) {
-        console.error('[ModMail] Could not archive modmail:', archiveError);
+        log({ level: 'error', message: 'Could not archive modmail', error: archiveError instanceof Error ? archiveError : undefined });
         // Don't throw - reply was successful
       }
     }
   } catch (error) {
-    console.error('[ModMail] Error replying to modmail:', error);
+    log({ level: 'error', message: 'Error replying to modmail', error: error instanceof Error ? error : undefined });
     throw error; // Propagate to caller
   }
 }

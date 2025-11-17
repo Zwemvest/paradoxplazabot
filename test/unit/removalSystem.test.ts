@@ -10,8 +10,11 @@ import type { BotSettings } from '../../src/types';
 
 // Mock the dependencies
 jest.mock('../../src/storage/postState');
+jest.mock('../../src/utils/logger');
 jest.mock('../../src/services/postValidation');
+jest.mock('../../src/utils/logger');
 jest.mock('../../src/services/commentValidation');
+jest.mock('../../src/utils/logger');
 
 const mockIsPostWarned = isPostWarned as jest.MockedFunction<typeof isPostWarned>;
 const mockMarkPostRemoved = markPostRemoved as jest.MockedFunction<typeof markPostRemoved>;
@@ -67,6 +70,17 @@ const createMockContext = (settingsOverride: Partial<BotSettings> = {}) => {
     reportreasontooshort: '',
     reportreasonnor5: '',
     notificationtemplate: '',
+    reporttemplate: '',
+    reportreason: '',
+    modmailnopostid: '',
+    modmailpostnotfound: '',
+    modmailnotauthor: '',
+    modmailnotbotremoval: '',
+    modmailalreadyapproved: '',
+    modmailnor5: '',
+    modmailsuccess: '',
+    modmailerror: '',
+    reinstatementcomment: '',
   };
 
   return {
@@ -76,6 +90,10 @@ const createMockContext = (settingsOverride: Partial<BotSettings> = {}) => {
     reddit: {
       getPostById: jest.fn(async (id: string) => createMockPost({ id })),
       getCommentById: jest.fn(async (id: string) => createMockComment({ id })),
+      getCurrentSubreddit: jest.fn(async () => ({
+        name: 'testsubreddit',
+      })),
+      report: jest.fn(async () => {}),
     },
   } as any;
 };
@@ -482,6 +500,7 @@ describe('Removal System', () => {
 
       mockIsPostWarned.mockResolvedValue(true);
       mockGetWarningCommentId.mockResolvedValue('warning123');
+      context.reddit.getPostById = jest.fn().mockResolvedValue(post); // Return the same post object
       context.reddit.getCommentById = jest.fn().mockResolvedValue(warningComment);
 
       const { shouldEnforceRule5 } = require('../../src/services/postValidation');

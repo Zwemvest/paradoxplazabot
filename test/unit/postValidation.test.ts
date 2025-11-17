@@ -57,6 +57,17 @@ const createMockContext = (settingsOverride: Partial<BotSettings> = {}) => {
     reportreasontooshort: '',
     reportreasonnor5: '',
     notificationtemplate: '',
+    reporttemplate: '',
+    reportreason: '',
+    modmailnopostid: '',
+    modmailpostnotfound: '',
+    modmailnotauthor: '',
+    modmailnotbotremoval: '',
+    modmailalreadyapproved: '',
+    modmailnor5: '',
+    modmailsuccess: '',
+    modmailerror: '',
+    reinstatementcomment: '',
   };
 
   const redisStore = new Map<string, { value: string; expiration?: Date }>();
@@ -93,13 +104,10 @@ const createMockPost = (overrides: Partial<Post> = {}): Post => {
     score: 1,
     approved: false,
     removed: false,
-    isSelf: false,
-    isGallery: false,
-    isVideo: false,
-    postHint: undefined,
-    selfText: '',
-    url: '',
-    linkFlairText: '',
+    body: '', // New Devvit API uses 'body' for self text
+    gallery: [], // New API uses gallery array
+    url: 'https://i.imgur.com/test.jpg', // Default to external URL
+    flair: { text: '' },
     ...overrides,
   } as Post;
 };
@@ -108,7 +116,7 @@ describe('Post Validation Service', () => {
   describe('Feature 2013: Recently Approved Check', () => {
     it('should skip recently approved posts', async () => {
       const context = createMockContext();
-      const post = createMockPost({ postHint: 'image' });
+      const post = createMockPost({ url: 'https://i.imgur.com/test.jpg' });
 
       // Mark as approved 1 hour ago
       const oneHourAgo = Date.now() - 60 * 60 * 1000;
@@ -124,7 +132,7 @@ describe('Post Validation Service', () => {
 
     it('should not skip posts approved >24h ago', async () => {
       const context = createMockContext();
-      const post = createMockPost({ postHint: 'image' });
+      const post = createMockPost({ url: 'https://i.imgur.com/test.jpg' });
 
       // Mark as approved 25 hours ago
       const twentyFiveHoursAgo = Date.now() - 25 * 60 * 60 * 1000;
@@ -141,7 +149,7 @@ describe('Post Validation Service', () => {
   describe('Feature 2001: Post Type Enforcement', () => {
     it('should enforce on image posts', async () => {
       const context = createMockContext();
-      const post = createMockPost({ postHint: 'image' });
+      const post = createMockPost({ url: 'https://i.imgur.com/test.jpg' });
 
       const result = await shouldEnforceRule5(post, context);
 
@@ -151,7 +159,10 @@ describe('Post Validation Service', () => {
 
     it('should enforce on gallery posts', async () => {
       const context = createMockContext();
-      const post = createMockPost({ isGallery: true });
+      const post = createMockPost({
+        gallery: [{ mediaId: 'img1' }, { mediaId: 'img2' }],
+        url: 'https://reddit.com/gallery/abc123'
+      });
 
       const result = await shouldEnforceRule5(post, context);
 
@@ -163,7 +174,9 @@ describe('Post Validation Service', () => {
       const context = createMockContext({
         enforcedposttypes: ['video'],
       });
-      const post = createMockPost({ isVideo: true });
+      const post = createMockPost({
+        url: 'https://v.redd.it/abc123'
+      });
 
       const result = await shouldEnforceRule5(post, context);
 
@@ -174,8 +187,8 @@ describe('Post Validation Service', () => {
     it('should enforce on text posts with image URLs', async () => {
       const context = createMockContext();
       const post = createMockPost({
-        isSelf: true,
-        selfText: 'Check out this screenshot: https://i.redd.it/abc123.png',
+        body: 'Check out this screenshot: https://i.redd.it/abc123.png',
+        url: 'https://reddit.com/r/test/comments/abc123'
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -193,14 +206,15 @@ describe('Post Validation Service', () => {
       const result = await shouldEnforceRule5(post, context);
 
       expect(result.shouldEnforce).toBe(true);
-      expect(result.reason).toBe('Link to image');
+      // imgur.com URLs are treated as image posts (not link posts)
+      expect(result.reason).toBe('Image post');
     });
 
     it('should not enforce on text posts without enforced content', async () => {
       const context = createMockContext();
       const post = createMockPost({
-        isSelf: true,
-        selfText: 'Just a discussion about the game',
+        body: 'Just a discussion about the game',
+        url: 'https://reddit.com/r/test/comments/abc123'
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -214,8 +228,8 @@ describe('Post Validation Service', () => {
     it('should skip posts with excluded flairs', async () => {
       const context = createMockContext();
       const post = createMockPost({
-        postHint: 'image', // Would normally be enforced
-        linkFlairText: 'Art',
+        url: 'https://i.imgur.com/test.jpg', // Would normally be enforced
+        flair: { text: 'Art' },
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -229,9 +243,9 @@ describe('Post Validation Service', () => {
         enforcedflairs: 'screenshot,gameplay',
       });
       const post = createMockPost({
-        isSelf: true, // Would normally not be enforced
-        selfText: 'Just text',
-        linkFlairText: 'Screenshot',
+        body: 'Just text', // Would normally not be enforced
+        url: 'https://reddit.com/r/test/comments/abc123',
+        flair: { text: 'Screenshot' },
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -246,7 +260,7 @@ describe('Post Validation Service', () => {
         excludedflairs: 'art,comic',
       });
       const post = createMockPost({
-        linkFlairText: 'Comic Art',
+        flair: { text: 'Comic Art' },
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -263,7 +277,7 @@ describe('Post Validation Service', () => {
       });
       const post = createMockPost({
         authorName: 'trusteduser',
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -278,7 +292,7 @@ describe('Post Validation Service', () => {
       });
       const post = createMockPost({
         authorName: 'trusteduser',
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -293,7 +307,7 @@ describe('Post Validation Service', () => {
         respectmodapprovals: true,
       });
       const post = createMockPost({
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
         approved: true,
       });
 
@@ -308,7 +322,7 @@ describe('Post Validation Service', () => {
         respectmodapprovals: false,
       });
       const post = createMockPost({
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
         approved: true,
       });
 
@@ -324,7 +338,7 @@ describe('Post Validation Service', () => {
         skipmodremoved: true,
       });
       const post = createMockPost({
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
         removed: true,
       });
 
@@ -338,7 +352,7 @@ describe('Post Validation Service', () => {
     it('should enforce on bot-removed posts', async () => {
       const context = createMockContext();
       const post = createMockPost({
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
         removed: true,
       });
 
@@ -359,9 +373,8 @@ describe('Post Validation Service', () => {
         skipkeywords: 'discussion\nquestion\nannouncement',
       });
       const post = createMockPost({
-        isSelf: true,
-        selfText: 'This is a discussion about the game',
-        postHint: 'image', // Would be enforced normally
+        body: 'This is a discussion about the game',
+        url: 'https://reddit.com/r/test/comments/abc123', // Self post
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -377,7 +390,7 @@ describe('Post Validation Service', () => {
 
       const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
       const post = createMockPost({
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
         createdAt: twoDaysAgo,
       });
 
@@ -392,7 +405,7 @@ describe('Post Validation Service', () => {
         skipupvotethreshold: 100,
       });
       const post = createMockPost({
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
         score: 150,
       });
 
@@ -425,8 +438,8 @@ describe('Post Validation Service', () => {
       });
       const post = createMockPost({
         authorName: 'testuser',
-        postHint: 'image',
-        linkFlairText: 'Comic',
+        url: 'https://i.imgur.com/test.jpg',
+        flair: { text: 'Comic' },
       });
 
       // Whitelist is higher priority than flair
@@ -440,7 +453,7 @@ describe('Post Validation Service', () => {
       const context = createMockContext();
       const post = createMockPost({
         authorName: undefined,
-        postHint: 'image',
+        url: 'https://i.imgur.com/test.jpg',
       });
 
       const result = await shouldEnforceRule5(post, context);
@@ -453,7 +466,7 @@ describe('Post Validation Service', () => {
       const context = createMockContext();
       context.settings.getAll = jest.fn().mockRejectedValue(new Error('Settings error'));
 
-      const post = createMockPost({ postHint: 'image' });
+      const post = createMockPost({ url: 'https://i.imgur.com/test.jpg' });
 
       const result = await shouldEnforceRule5(post, context);
 

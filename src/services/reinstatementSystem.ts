@@ -188,7 +188,8 @@ export async function monitorWarnedPosts(context: TriggerContext): Promise<void>
     console.log(`[ReinstatementSystem] Starting R5 monitoring sweep`);
 
     const subreddit = await context.reddit.getCurrentSubreddit();
-    const settings = (await context.settings.getAll()) as unknown as BotSettings;
+// TODO: Use this setting
+    //     const _settings = (await context.settings.getAll()) as unknown as BotSettings;
 
     // Get recent posts (posts from last 24-48 hours that might have warnings)
     // This is a backup to CommentCreate events
@@ -197,8 +198,7 @@ export async function monitorWarnedPosts(context: TriggerContext): Promise<void>
       limit: 100,
     }).all();
 
-    let checkedCount = 0;
-    let reinstatedCount = 0;
+    let checkedCount = 0; // TODO: Track reinstated count for analytics
 
     for (const post of posts) {
       try {

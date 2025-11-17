@@ -10,8 +10,11 @@ import { reinstatePost } from '../../src/services/reinstatementSystem';
 
 // Mock the dependencies
 jest.mock('../../src/storage/postState');
+jest.mock('../../src/utils/logger');
 jest.mock('../../src/services/commentValidation');
+jest.mock('../../src/utils/logger');
 jest.mock('../../src/services/reinstatementSystem');
+jest.mock('../../src/utils/logger');
 
 const mockWasRemovedByBot = wasRemovedByBot as jest.MockedFunction<typeof wasRemovedByBot>;
 const mockHasValidR5Comment = hasValidR5Comment as jest.MockedFunction<typeof hasValidR5Comment>;

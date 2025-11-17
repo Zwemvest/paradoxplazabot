@@ -146,7 +146,7 @@ async function postRemovalComment(
   settings: BotSettings,
   context: TriggerContext,
   wasRemoved: boolean,
-  wasReported: boolean
+  _wasReported: boolean
 ): Promise<void> {
   try {
     const postId = post.id;

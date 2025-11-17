@@ -114,9 +114,9 @@ function formatText(level: LogLevel, service: string, message: string, context?:
 }
 
 /**
- * Core logging function
+ * Core logging function (internal)
  */
-function log(level: LogLevel, service: string, message: string, context?: LogContext, error?: Error): void {
+function logInternal(level: LogLevel, service: string, message: string, context?: LogContext, error?: Error): void {
   // Check if this log level should be emitted
   if (!shouldLog(level)) {
     return;
@@ -151,15 +151,15 @@ export class Logger {
   constructor(private serviceName: string) {}
 
   debug(message: string, context?: LogContext): void {
-    log('debug', this.serviceName, message, context);
+    logInternal('debug', this.serviceName, message, context);
   }
 
   info(message: string, context?: LogContext): void {
-    log('info', this.serviceName, message, context);
+    logInternal('info', this.serviceName, message, context);
   }
 
   warn(message: string, context?: LogContext): void {
-    log('warn', this.serviceName, message, context);
+    logInternal('warn', this.serviceName, message, context);
   }
 
   error(message: string, error?: Error | unknown, context?: LogContext): void {
@@ -171,7 +171,7 @@ export class Logger {
       ? { ...context, errorValue: String(error) }
       : context || {};
 
-    log('error', this.serviceName, message, errorContext, errorObj);
+    logInternal('error', this.serviceName, message, errorContext, errorObj);
   }
 
   /**
@@ -228,3 +228,37 @@ export const loggers = {
   postState: createLogger('PostState'),
   main: createLogger('Main'),
 };
+
+/**
+ * Simple log function for quick logging
+ */
+export function log(params: {
+  level: LogLevel;
+  message: string;
+  context?: LogContext;
+  error?: Error;
+  service?: string;
+}): void {
+  const { level, message, context, error, service = 'App' } = params;
+
+  if (!shouldLog(level)) {
+    return;
+  }
+
+  const formattedMessage = config.format === 'json'
+    ? formatJSON(level, service, message, context, error)
+    : formatText(level, service, message, context);
+
+  switch (level) {
+    case 'debug':
+    case 'info':
+      console.log(formattedMessage);
+      break;
+    case 'warn':
+      console.warn(formattedMessage);
+      break;
+    case 'error':
+      console.error(formattedMessage);
+      break;
+  }
+}

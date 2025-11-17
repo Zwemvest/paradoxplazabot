@@ -1,6 +1,6 @@
 {
   "name": "rule5bot",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "Generic Reddit moderation bot for enforcing Rule 5 (screenshot explanations)",
   "main": "dist/main.js",
   "scripts": {
@@ -25,7 +25,7 @@
   "author": "Zwemvest",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "@devvit/public-api": "0.12.1",
+    "@devvit/public-api": "^0.12.3",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.19",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
@@ -36,7 +36,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@devvit/public-api": "0.12.1"
+    "@devvit/protos": "^0.12.3"
   },
   "type": "module",
   "private": true

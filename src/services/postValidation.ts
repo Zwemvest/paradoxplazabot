@@ -55,7 +55,7 @@ export async function shouldEnforceRule5(
     const selfText = getSelfText(post);
     if (isSelfPost(post) && selfText) {
       const skipKeywords = parseKeywordList(settings.skipkeywords);
-      if (containsOne(selfText, skipKeywords)) {
+      if (skipKeywords.length > 0 && containsOne(selfText, skipKeywords)) {
         return { shouldEnforce: false, reason: 'Contains skip keyword' };
       }
     }
@@ -271,7 +271,7 @@ async function checkExclusionRules(
     }
 
     const containsKeywords = parseKeywordList(settings.textpostexclusioncontainsone);
-    if (containsOne(postSelfText, containsKeywords)) {
+    if (containsKeywords.length > 0 && containsOne(postSelfText, containsKeywords)) {
       return { shouldEnforce: false, reason: 'Text contains exclusion keyword' };
     }
   }

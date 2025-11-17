@@ -47,7 +47,7 @@ export async function sendNotification(
 async function sendSlackNotification(
   payload: NotificationPayload,
   webhookUrl: string,
-  context: TriggerContext
+  _context: TriggerContext
 ): Promise<void> {
   try {
     const color = getEventColor(payload.event);
@@ -110,7 +110,7 @@ async function sendSlackNotification(
 async function sendDiscordNotification(
   payload: NotificationPayload,
   webhookUrl: string,
-  context: TriggerContext
+  _context: TriggerContext
 ): Promise<void> {
   try {
     const color = getEventColorHex(payload.event);
