@@ -204,6 +204,7 @@ export interface TemplateVariables {
   event?: string;
   reason?: string;
   action?: string; // Feature 5010: Action taken (removed/reported)
+  minlength?: string | number; // Minimum R5 comment length setting
 }
 
 // ============================================================================

@@ -1,8 +1,6 @@
 name: rule5bot
 version: 1.0.1
 description: Generic Rule 5 enforcement bot - ensures users explain their screenshots
-
-# Permissions required
 permissions:
   - modposts
   - modcomments
@@ -10,23 +8,8 @@ permissions:
   - posts
   - comments
   - redis
-
-# App configuration
 app:
-  # Main entry point
   main: dist/main.js
-
-  # Settings UI (generated from code)
-  settings:
-    # Settings are defined programmatically in src/settings/definitions.ts
-
-# Redis configuration
-redis:
-  # Bot uses Redis for state management:
-  # - Post tracking (warned, removed, approved)
-  # - Grace period timers
-  # - Recently approved cache
-
-# Scheduler configuration (for monitoring jobs)
-scheduler:
-  # Jobs defined programmatically in src/main.ts
+  settings: null
+redis: null
+scheduler: null
